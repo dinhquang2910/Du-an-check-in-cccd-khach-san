@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông báo Check-in Real-time</title>
+    <link rel="stylesheet" href="./thongbao.css" />
+  </head>
+  <body>
+    <a href="./nhanvien.html">Quay lại</a>
+    <div class="container">
+      <div class="header">
+        <h2>Thông báo khách hàng Check-in online</h2>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <span id="trangThaiKetNoi" class="status">Đang kết nối...</span>
+          <button type="button" id="nutXoaThongBao" class="btn-clear">
+            Xóa tất cả
+          </button>
+        </div>
+      </div>
+
+      <div id="danhSachThongBao">
+        <div id="trangThaiTrong" class="empty">
+          Chưa có khách nào đã check-in.
+        </div>
+      </div>
+    </div>
+
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="./thongbao.js"></script>
+  </body>
+</html>

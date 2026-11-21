@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: sans-serif;
+}
+
+.hienthichung {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 3px solid #333;
+  padding-top: 16px;
+}
+
+.khungchuakhach {
+  width: 340px;
+  border: 1px solid #ddd;
+  border-right: 3px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fff;
+}
+
+.khungchuakhach h2 {
+  margin: 10px 0 6px;
+}
+
+.khungchuakhach p {
+  margin: 4px 0;
+}

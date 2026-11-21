@@ -1,0 +1,111 @@
+/* Thanh tiến trình bước */
+.muc-buoc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  min-width: 85px;
+}
+
+.vong-tron-buoc {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+}
+
+.muc-buoc.hoat-dong {
+  color: #2563eb;
+}
+
+.muc-buoc.hoat-dong .vong-tron-buoc {
+  background: #2563eb;
+  color: white;
+}
+
+.muc-buoc.hoan-thanh {
+  color: #16a34a;
+}
+
+.muc-buoc.hoan-thanh .vong-tron-buoc {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.duong-noi-buoc {
+  width: 45px;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 8px 24px;
+}
+
+.duong-noi-buoc.hoan-thanh {
+  background: #22c55e;
+}
+
+/* Form nhập liệu */
+.nhan-form {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.o-nhap-lieu {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  color: #1e293b;
+  background: white;
+  transition: 0.2s;
+}
+
+.o-nhap-lieu:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Hiệu ứng xoay */
+.vong-xoay-tai {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #bfdbfe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: xoay 0.8s linear infinite;
+}
+
+@keyframes xoay {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tương thích màn hình nhỏ */
+@media (max-width: 480px) {
+  .muc-buoc {
+    min-width: 75px;
+    font-size: 10px;
+  }
+
+  .duong-noi-buoc {
+    width: 15px;
+    margin-left: 3px;
+    margin-right: 3px;
+  }
+}
+.nut {
+  background-color: yellow;
+}

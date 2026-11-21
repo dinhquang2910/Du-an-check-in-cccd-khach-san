@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['ID', 'birth', 'name', 'place', 'residence']
+
+roboflow:
+  workspace: dinh-hong-quang-51
+  project: cccd-0nl3b-unzbu
+  version: 1
+  license: CC BY 4.0
+  url: https://app.roboflow.com/dinh-hong-quang-51/cccd-0nl3b-unzbu/1

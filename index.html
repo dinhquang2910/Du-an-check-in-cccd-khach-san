@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Smart Hotel - Check-in</title>
+
+    <link rel="stylesheet" href="../Tailwind/output.css" />
+    <link rel="stylesheet" href="../Fronend/giaodienindex.css" />
+  </head>
+
+  <body class="bg-slate-50 min-h-screen">
+    <header class="bg-white border-b border-slate-200">
+      <a href="../Fronend/nhanvien.html"
+        ><button class="nut">Test bên nhân viên</button></a
+      >
+      <div
+        class="max-w-6xl mx-auto px-5 py-4 flex justify-between items-center"
+      >
+        <div class="flex items-center gap-3">
+          <div>
+            <h1 class="font-bold text-xl text-slate-800">Hotel-QUANGIT</h1>
+            <p class="text-xs text-slate-500">Check-in trực tuyến</p>
+          </div>
+        </div>
+
+        <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+          Hệ thống check-in trực tuyến
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-5 py-10">
+      <div class="text-center mb-10">
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mt-3">
+          Check-in trực tuyến
+        </h2>
+        <p class="text-slate-500 mt-3">
+          Hoàn tất thủ tục nhận phòng nhanh chóng với check-in trực tuyến.
+        </p>
+      </div>
+
+      <!-- Thanh tiến trình -->
+      <div class="flex items-center justify-center mb-10">
+        <div class="muc-buoc hoat-dong" id="chiSoBuoc1">
+          <div class="vong-tron-buoc">1</div>
+          <span>Xác nhận mã đặt phòng</span>
+        </div>
+
+        <div class="duong-noi-buoc" id="duongNoi1"></div>
+
+        <div class="muc-buoc" id="chiSoBuoc2">
+          <div class="vong-tron-buoc">2</div>
+          <span>Chụp CCCD</span>
+        </div>
+
+        <div class="duong-noi-buoc" id="duongNoi2"></div>
+
+        <div class="muc-buoc" id="chiSoBuoc3">
+          <div class="vong-tron-buoc">3</div>
+          <span>Xác nhận thông tin</span>
+        </div>
+      </div>
+
+      <!-- BƯỚC 1 -->
+      <section
+        id="khuVucBuoc1"
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8"
+      >
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-slate-800">
+            Xác nhận thông tin đặt phòng
+          </h3>
+          <p class="text-sm text-slate-500 mt-2">
+            Vui lòng nhập mã đặt phòng được cung cấp khi đặt khách sạn.
+          </p>
+        </div>
+
+        <label class="block text-sm font-semibold text-slate-700 mb-2">
+          Mã đặt phòng
+        </label>
+
+        <input
+          type="text"
+          id="oNhapMaDatPhong"
+          placeholder="Có dạng: DQ******"
+          class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+
+        <p id="thongBaoLoiMa" class="text-red-500 text-sm mt-2 hidden">
+          Vui lòng nhập mã đặt phòng hợp lệ.
+        </p>
+
+        <div
+          id="khungThongTinDatPhong"
+          class="hidden mt-6 bg-blue-50 border border-blue-100 rounded-xl p-5"
+        >
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="font-bold text-blue-800">Thông tin đặt phòng</h4>
+            <span
+              class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full"
+            >
+              Đã xác nhận
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-slate-500">Số phòng</p>
+              <p id="tenphong1" class="font-semibold mt-1"></p>
+            </div>
+            <div>
+              <p class="text-slate-500">Loại phòng</p>
+              <p id="loaiphong1" class="font-semibold mt-1"></p>
+            </div>
+            <div>
+              <p class="text-slate-500">Số người</p>
+              <p id="songuoi1" class="font-semibold mt-1"></p>
+            </div>
+            <div>
+              <p class="text-slate-500">Check in</p>
+              <p id="checkin1" class="font-semibold mt-1"></p>
+            </div>
+            <div>
+              <p class="text-slate-500">Check out</p>
+              <p id="checkout1" class="font-semibold mt-1"></p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="nutKiemTraMa"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl mt-6 transition"
+        >
+          Kiểm tra mã đặt phòng
+        </button>
+
+        <button
+          id="nutSangBuoc2"
+          class="hidden w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-xl mt-3 transition"
+        >
+          Tiếp tục
+        </button>
+      </section>
+
+      <!-- BƯỚC 2 -->
+      <section
+        id="khuVucBuoc2"
+        class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8"
+      >
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-slate-800">
+            Danh sách khách lưu trú
+          </h3>
+          <p class="text-sm text-slate-500 mt-2">
+            Chụp ảnh CCCD hoặc thêm ảnh CCCD của từng người lưu trú trong phòng.
+          </p>
+        </div>
+
+        <!-- Danh sách khách được thêm -->
+        <div id="danhSachKhach" class="space-y-5"></div>
+
+        <!-- Nút thêm khách -->
+        <button
+          type="button"
+          id="nutThemKhach"
+          class="w-full border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 rounded-xl py-4 mt-5 font-semibold transition"
+        >
+          + Thêm khách lưu trú
+        </button>
+
+        <!-- Nút nhận diện AI chung -->
+        <button
+          type="button"
+          id="nutNhanDienToanBo"
+          class="hidden w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl mt-3 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Nhận diện toàn bộ danh sách bằng AI
+        </button>
+
+        <p id="thongBaoLoiKhach" class="hidden text-red-500 text-sm mt-3"></p>
+
+        <!-- Tiếp tục sang bước 3 -->
+        <button
+          type="button"
+          id="nutSangBuoc3"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl mt-6 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+        >
+          Kiểm tra danh sách khách
+        </button>
+
+        <button
+          type="button"
+          id="nutQuayLaiBuoc1"
+          class="w-full text-slate-500 hover:text-slate-800 font-medium py-3 mt-2"
+        >
+          ← Quay lại
+        </button>
+      </section>
+
+      <!-- BƯỚC 3 -->
+      <section
+        id="khuVucBuoc3"
+        class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8"
+      >
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-slate-800">
+            Xác nhận thông tin khách lưu trú
+          </h3>
+          <p class="text-sm text-slate-500 mt-2">
+            Kiểm tra lại thông tin của từng khách trước khi gửi. Bạn có thể
+            chỉnh sửa nếu AI nhận diện chưa chính xác.
+          </p>
+        </div>
+
+        <form id="formKhachHang">
+          <div id="danhSachXemLai" class="space-y-5"></div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-6">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                id="hopKiemXacNhan"
+                class="mt-1 w-4 h-4 accent-blue-600"
+              />
+              <span class="text-sm text-slate-600">
+                Tôi xác nhận thông tin của tất cả khách lưu trú là chính xác và
+                đồng ý gửi cho khách sạn để thực hiện thủ tục check-in.
+              </span>
+            </label>
+          </div>
+
+          <p id="thongBaoLoiForm" class="hidden text-red-500 text-sm mt-3"></p>
+
+          <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl mt-6 transition"
+          >
+            Xác nhận và gửi thông tin
+          </button>
+        </form>
+
+        <button
+          type="button"
+          id="nutQuayLaiBuoc2"
+          class="w-full text-slate-500 hover:text-slate-800 font-medium py-3 mt-2"
+        >
+          ← Quay lại chỉnh sửa danh sách
+        </button>
+      </section>
+
+      <!-- GIAO DIỆN THÀNH CÔNG -->
+      <section
+        id="phanThanhCong"
+        class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center"
+      >
+        <div
+          class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-5"
+        >
+          ✓
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800">
+          Gửi thông tin thành công!
+        </h3>
+        <p class="text-slate-500 mt-3">
+          Yêu cầu check-in của bạn đã được ghi nhận. Vui lòng chờ nhân viên
+          khách sạn xác nhận.
+        </p>
+
+        <div class="bg-blue-50 rounded-xl p-4 mt-6">
+          <p class="text-sm text-slate-500">Mã đặt phòng</p>
+          <p
+            id="maDatPhongThanhCong"
+            class="text-xl font-bold text-blue-700 mt-1"
+          >
+            HT20260001
+          </p>
+          <p class="text-sm text-blue-600 mt-3">Trạng thái: Đang chờ duyệt</p>
+        </div>
+      </section>
+
+      <div class="mt-8 flex items-start gap-3 text-sm text-slate-500">
+        <span class="text-xl">🔒</span>
+        <p>
+          Thông tin giấy tờ tùy thân được sử dụng cho mục đích xác minh khách
+          lưu trú. Vui lòng chỉ tải lên giấy tờ của bạn hoặc người được ủy
+          quyền.
+        </p>
+      </div>
+    </main>
+
+    <script src="../Fronend/index.js"></script>
+  </body>
+</html>

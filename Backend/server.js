@@ -13,11 +13,12 @@ const PORT = process.env.PORT || 3000;
 const path = require("path");
 
 // Cho phép Express phục vụ toàn bộ file tĩnh (HTML, CSS, JS, ảnh) trong thư mục Fronend
+// Serve các file tĩnh ở thư mục gốc và thư mục Fronend
+app.use(express.static(path.join(__dirname, "..")));
 app.use(express.static(path.join(__dirname, "../Fronend")));
 
-// Khi người dùng vào trang chủ (/), trả về file HTML chính (ví dụ index.html)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./index.html"));
+  res.sendFile(path.join(__dirname, "../index.html"));
 });
 //thông báo
 const io = new Server(server, {

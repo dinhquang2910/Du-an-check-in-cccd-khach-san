@@ -20,6 +20,12 @@ const nutSangBuoc3 = document.getElementById("nutSangBuoc3");
 
 const danhSachXemLai = document.getElementById("danhSachXemLai");
 
+const OCR_API_BASE =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://checkinonlinepython.onrender.com";
+
 function dinhDangNgayThang(chuoiThoiGian) {
   if (!chuoiThoiGian) return "";
 
@@ -502,15 +508,36 @@ nutNhanDienToanBo.addEventListener("click", async (event) => {
     let soKhachThatBai = 0;
 
     // Duyệt qua từng khách có file ảnh
+    // for (let khach of chuaXacMinh) {
+    //   const formData = new FormData();
+    //   formData.append("file", khach.file);
+
+    //   // Gửi ảnh lên Python Flask
+    //   const response = await fetch("/api/nhan-dien-cccd", {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+
+    //   const result = await response.json().catch(() => null);
+    // Duyệt qua từng khách có file ảnh
     for (let khach of chuaXacMinh) {
       const formData = new FormData();
       formData.append("file", khach.file);
 
-      // Gửi ảnh lên Python Flask
-      const response = await fetch("/api/nhan-dien-cccd", {
-        method: "POST",
-        body: formData,
-      });
+      // Gửi ảnh lên Python Flask (timeout 120s để chờ service Free thức dậy & load model)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+      let response;
+      try {
+        response = await fetch(`${OCR_API_BASE}/api/nhan-dien-cccd`, {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       const result = await response.json().catch(() => null);
 

@@ -6,20 +6,63 @@ import numpy as np
 import easyocr
 import re
 import unicodedata
+import os
 
 app = Flask(__name__)
 CORS(app)
+# tietkiemcpu
+import gc
+import torch
 
+# Giới hạn số luồng CPU để tránh tốn thêm bộ nhớ/thread trên container nhỏ
+torch.set_num_threads(1)
+
+_yolo_model = None
+_ocr_reader = None
+
+def get_yolo_model():
+    global _yolo_model
+    if _yolo_model is None:
+        # Đổi đường dẫn nếu file .pt của bạn nằm ở thư mục khác (ví dụ "runs/detect/train/weights/best.pt")
+        _yolo_model = YOLO("yolo11n.pt")
+    return _yolo_model
+
+def get_ocr_reader():
+    global _ocr_reader
+    if _ocr_reader is None:
+        # Chỉ giữ ngôn ngữ thật sự cần thiết để tiết kiệm RAM
+        _ocr_reader = easyocr.Reader(["vi", "en"], gpu=False, quantize=True)
+    return _ocr_reader
+
+def release_temp_memory():
+    gc.collect()
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "ok"}), 200
 # ==============================
 # 1. KHỞI TẠO MÔ HÌNH
 # ==============================
 
-model = YOLO("runs/detect/train/weights/best.pt")
+# model = YOLO("runs/detect/train/weights/best.pt")
 
-print("Đang khởi tạo EasyOCR...")
-reader = easyocr.Reader(["vi", "en"], gpu=True)
-print("EasyOCR đã sẵn sàng")
+# print("Đang khởi tạo EasyOCR...")
+# reader = easyocr.Reader(["vi", "en"], gpu=True)
+# print("EasyOCR đã sẵn sàng")
+def get_yolo_model():
+    global _yolo_model
+    if _yolo_model is None:
+        print("Đang khởi tạo YOLO...")
+        _yolo_model = YOLO("runs/detect/train/weights/best.pt")
+    return _yolo_model
 
+def get_ocr_reader():
+    global _ocr_reader
+    if _ocr_reader is None:
+        print("Đang khởi tạo EasyOCR...")
+        _ocr_reader = easyocr.Reader(["vi", "en"], gpu=False, quantize=True)
+        print("EasyOCR đã sẵn sàng")
+    return _ocr_reader
 
 # ==============================
 # 2. HÀM CHUẨN HÓA VĂN BẢN
@@ -309,7 +352,8 @@ def nhan_dien_cccd():
             return jsonify({"success": False, "message": "File ảnh bị lỗi!"}), 400
 
         # YOLO nhận diện khung thẻ
-        results = model(img, conf=0.30, imgsz=960, verbose=False)
+        # results = model(img, conf=0.30, imgsz=960, verbose=False)
+        results = get_yolo_model()(img, conf=0.30, imgsz=960, verbose=False)
         boxes = results[0].boxes
 
         if boxes is None or len(boxes) == 0:
@@ -351,8 +395,8 @@ def nhan_dien_cccd():
         anh_cccd = cv2.resize(anh_cccd, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         
         # Đọc chi tiết từng từ bằng EasyOCR
-        ocr_results = reader.readtext(anh_cccd, detail=1, paragraph=False)
-
+        # ocr_results = reader.readtext(anh_cccd, detail=1, paragraph=False)
+        ocr_results = get_ocr_reader().readtext(anh_cccd, detail=1, paragraph=False)
         # Gom nhóm từ thành các dòng văn bản kèm tọa độ Y
         formatted_lines = gom_nhom_dong_ocr(ocr_results, y_tolerance=12)
 

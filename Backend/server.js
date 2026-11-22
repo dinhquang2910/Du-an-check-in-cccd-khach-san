@@ -55,12 +55,12 @@ app.use(
     cookie: {
       secure: false,
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 1 ngày
+      maxAge: 1000 * 60 * 60 * 24,
     },
   }),
 );
 
-// 4. Route kiểm tra server
+//kiểm tra server
 app.get("/", (req, res) => {
   res.send({ message: "Server đang chạy ổn định!" });
 });
@@ -82,7 +82,6 @@ app.post("/api/maphong", async (req, res) => {
         message: "Mã đặt phòng không tồn tại , vui lòng thử lại",
       });
     }
-    //lấy bản ghi đầu tiên từ sql
     const phong = ketqua.rows[0];
 
     if (phong.trangthai === "Đã xác nhận") {

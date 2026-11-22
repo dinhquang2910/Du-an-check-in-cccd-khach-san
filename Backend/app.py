@@ -6,8 +6,6 @@ import numpy as np
 import easyocr
 import re
 import unicodedata
-import os
-import gc
 from flask_cors import CORS
 
 
@@ -19,7 +17,7 @@ CORS(app)
 import gc
 import torch
 
-# Giới hạn số luồng CPU để tránh tốn thêm bộ nhớ/thread trên container nhỏ
+# Giới hạn số luồng CPU 
 torch.set_num_threads(1)
 
 _yolo_model = None
@@ -28,7 +26,6 @@ _ocr_reader = None
 def get_yolo_model():
     global _yolo_model
     if _yolo_model is None:
-        # Đổi đường dẫn nếu file .pt của bạn nằm ở thư mục khác (ví dụ "runs/detect/train/weights/best.pt")
         _yolo_model = YOLO("yolo11n.pt")
     return _yolo_model
 
@@ -45,15 +42,9 @@ def release_temp_memory():
 @app.route("/health", methods=["GET"])
 def health_check():
     return jsonify({"status": "ok"}), 200
-# ==============================
-# 1. KHỞI TẠO MÔ HÌNH
-# ==============================
 
-# model = YOLO("runs/detect/train/weights/best.pt")
+# KHỞI TẠO MÔ HÌNH
 
-# print("Đang khởi tạo EasyOCR...")
-# reader = easyocr.Reader(["vi", "en"], gpu=True)
-# print("EasyOCR đã sẵn sàng")
 def get_yolo_model():
     global _yolo_model
     if _yolo_model is None:
@@ -69,9 +60,9 @@ def get_ocr_reader():
         print("EasyOCR đã sẵn sàng")
     return _ocr_reader
 
-# ==============================
-# 2. HÀM CHUẨN HÓA VĂN BẢN
-# ==============================
+
+#CHUẨN HÓA VĂN BẢN
+
 
 def chuan_hoa(text):
     text = str(text).lower().strip()
@@ -105,9 +96,9 @@ def clean_address_line(text):
     return text.strip(" :.-/,;")
 
 
-# ==============================
+
 # HÀM TỰ ĐỘNG XOAY THẲNG ẢNH KHI BỊ NGHIÊNG
-# ==============================
+
 
 def can_chinh_anh_nghieng(anh_cat):
     try:
@@ -144,9 +135,9 @@ def can_chinh_anh_nghieng(anh_cat):
     return anh_cat
 
 
-# ==============================
+
 # HÀM GOM NHÓM TỪ THÀNH DÒNG VĂN BẢN KÈM TỌA ĐỘ Y
-# ==============================
+
 
 def gom_nhom_dong_ocr(ocr_results, y_tolerance=12):
     boxes = []
@@ -195,9 +186,9 @@ def gom_nhom_dong_ocr(ocr_results, y_tolerance=12):
     return formatted_lines
 
 
-# ==============================
+
 # 3. BÓC TÁCH THÔNG TIN CCCD SẠCH SẼ & CHÍNH XÁC
-# ==============================
+
 
 def phan_tich_cccd_lines(formatted_lines):
     full_name = ""
@@ -211,7 +202,7 @@ def phan_tich_cccd_lines(formatted_lines):
     line_texts = [item['text'] for item in formatted_lines]
     norm_lines = [chuan_hoa(l) for l in line_texts]
 
-    # 1. Tìm số CCCD (12 chữ số)
+    # Tìm số CCCD (12 chữ số)
     for line in line_texts:
         clean_digits = re.sub(r'\D', '', line)
         if len(clean_digits) == 12:
@@ -224,7 +215,7 @@ def phan_tich_cccd_lines(formatted_lines):
                 id_number = match.group(0)
                 break
 
-    # 2. Tìm Ngày sinh
+    # Tìm Ngày sinh
     for line in line_texts:
         match = re.search(r'(\d{2})[/. -](\d{2})[/. -](\d{4})', line)
         if match:
@@ -232,7 +223,7 @@ def phan_tich_cccd_lines(formatted_lines):
                 dob = f"{match.group(1)}/{match.group(2)}/{match.group(3)}"
                 break
 
-    # 3. Tìm Giới tính
+    # Tìm Giới tính
     for n_line in norm_lines:
         if re.search(r'\bnu\b', n_line):
             gender = "Nữ"
@@ -241,13 +232,13 @@ def phan_tich_cccd_lines(formatted_lines):
             gender = "Nam"
             break
 
-    # 4. Tìm Quốc tịch
+    # Tìm Quốc tịch
     for n_line in norm_lines:
         if "viet" in n_line or "nam" in n_line or "v.nam" in n_line:
             nationality = "Việt Nam"
             break
 
-    # 5. Tìm Họ và tên
+    # Tìm Họ và tên
     name_idx = -1
     for i, n_line in enumerate(norm_lines):
         if "ho va ten" in n_line or "full name" in n_line or ("ho" in n_line and "ten" in n_line):
@@ -270,7 +261,7 @@ def phan_tich_cccd_lines(formatted_lines):
                     name_idx = i
                     break
 
-    # 6. Xác định vùng chứa địa chỉ theo cấu trúc tuần tự tuyệt đối
+    # Xác định vùng chứa địa chỉ theo cấu trúc tuần tự tuyệt đối
     header_end_idx = -1
     for i, n_line in enumerate(norm_lines):
         if any(k in n_line for k in ["gioi tinh", "sex", "quoc tich", "nationality", "nam", "nu"]):
@@ -279,7 +270,7 @@ def phan_tich_cccd_lines(formatted_lines):
     if header_end_idx == -1 and name_idx != -1:
         header_end_idx = name_idx + 2
 
-    # Tìm mốc hạn sử dụng ở cuối thẻ để cắt đuôi
+    # Tìm hạn sử dụng ở cuối thẻ để cắt đuôi
     expiry_idx = len(line_texts)
     for i in range(header_end_idx + 1 if header_end_idx != -1 else 0, len(line_texts)):
         n_line = norm_lines[i]
@@ -287,7 +278,6 @@ def phan_tich_cccd_lines(formatted_lines):
             expiry_idx = i
             break
 
-    # Quét toàn bộ các dòng hợp lệ nằm giữa header và expiry
     valid_address_lines = []
     start_scan = header_end_idx + 1 if header_end_idx != -1 else 3
     
@@ -316,7 +306,7 @@ def phan_tich_cccd_lines(formatted_lines):
             if cleaned not in valid_address_lines:
                 valid_address_lines.append(cleaned)
 
-    # 7. Phân bổ tuần tự: Dòng đầu tiên là Quê quán, các dòng sau là Nơi thường trú
+    # Phân bổ tuần tự: Dòng đầu tiên là Quê quán, các dòng sau là Nơi thường trú
     if len(valid_address_lines) > 0:
         hometown_lines.append(valid_address_lines[0])
     
@@ -339,126 +329,25 @@ def phan_tich_cccd_lines(formatted_lines):
     }
 
 
-# ==============================
-# 4. API NHẬN DIỆN CCCD
-# ==============================
 
-# @app.route("/api/nhan-dien-cccd", methods=["POST"])
-# def nhan_dien_cccd():
-#     try:
-#         if "file" not in request.files:
-#             return jsonify({"success": False, "message": "Không tìm thấy file ảnh!"}), 400
+# API NHẬN DIỆN CCCD
 
-#         file = request.files["file"]
-#         npimg = np.frombuffer(file.read(), np.uint8)
-#         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-#         if img is None:
-#             return jsonify({"success": False, "message": "File ảnh bị lỗi!"}), 400
-
-#         # YOLO nhận diện khung thẻ
-#         # results = model(img, conf=0.30, imgsz=960, verbose=False)/////////
-#         results = get_yolo_model()(img, conf=0.30, imgsz=960, verbose=False)
-#         boxes = results[0].boxes
-
-#         if boxes is None or len(boxes) == 0:
-#             return jsonify({
-#                 "success": False,
-#                 "message": "Không nhận diện được CCCD. Vui lòng chụp lại ảnh rõ nét"
-#             }), 400
-
-#         x1_min = float('inf')
-#         y1_min = float('inf')
-#         x2_max = float('-inf')
-#         y2_max = float('-inf')
-
-#         for box in boxes:
-#             coords = box.xyxy[0].cpu().numpy()
-#             x1, y1, x2, y2 = map(int, coords)
-#             x1_min = min(x1_min, x1)
-#             y1_min = min(y1_min, y1)
-#             x2_max = max(x2_max, x2)
-#             y2_max = max(y2_max, y2)
-
-#         height, width = img.shape[:2]
-#         padding = 50
-
-#         x1 = max(0, x1_min - padding)
-#         y1 = max(0, y1_min - padding)
-#         x2 = min(width, x2_max + padding)
-#         y2 = min(height, y2_max + padding)
-
-#         anh_cccd = img[y1:y2, x1:x2]
-
-#         if anh_cccd.size == 0:
-#             return jsonify({"success": False, "message": "Không thể cắt vùng CCCD!"}), 400
-
-#         # Tự động xoay thẳng ảnh nếu bị nghiêng nhẹ
-#         anh_cccd = can_chinh_anh_nghieng(anh_cccd)
-
-#         # Phóng to ảnh để EasyOCR đọc nét hơn
-#         anh_cccd = cv2.resize(anh_cccd, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        
-#         # Đọc chi tiết từng từ bằng EasyOCR
-#         # ocr_results = reader.readtext(anh_cccd, detail=1, paragraph=False)/////
-#         ocr_results = get_ocr_reader().readtext(anh_cccd, detail=1, paragraph=False)
-#         # Gom nhóm từ thành các dòng văn bản kèm tọa độ Y
-#         formatted_lines = gom_nhom_dong_ocr(ocr_results, y_tolerance=12)
-
-#         print("\nKẾT QUẢ GOM NHÓM DÒNG OCR")
-#         for i, item in enumerate(formatted_lines):
-#             print(f"[{i}] (y={item['y']:.1f}) {item['text']}")
-#         print("=========================\n")
-
-#         # Phân tích và bóc tách thông tin
-#         data = phan_tich_cccd_lines(formatted_lines)
-
-#         print(" DỮ LIỆU TRẢ VỀ FRONTEND ")
-#         for key, value in data.items():
-#             print(f"{key}: {value}")
-#         print("==========================")
-
-#         return jsonify({
-#             "success": True,
-#             "data": data
-#         })
-
-#     except Exception as e:
-#         print("Lỗi nhận diện CCCD:", str(e))
-#         return jsonify({
-#             "success": False,
-#             "message": "Lỗi xử lý ảnh CCCD!",
-#             "error": str(e)
-#         }), 500
 @app.route("/api/nhan-dien-cccd", methods=["POST"])
 def nhan_dien_cccd():
-    img = None
-    anh_cccd = None
-    results = None
-    ocr_results = None
-
     try:
         if "file" not in request.files:
             return jsonify({"success": False, "message": "Không tìm thấy file ảnh!"}), 400
 
         file = request.files["file"]
-        raw_bytes = file.read()
-        npimg = np.frombuffer(raw_bytes, np.uint8)
+        npimg = np.frombuffer(file.read(), np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-        del raw_bytes, npimg
 
         if img is None:
             return jsonify({"success": False, "message": "File ảnh bị lỗi!"}), 400
 
-        # Thu nhỏ ảnh đầu vào nếu quá lớn để giảm RAM cho YOLO
-        h0, w0 = img.shape[:2]
-        max_w_yolo = 1280
-        if w0 > max_w_yolo:
-            scale = max_w_yolo / float(w0)
-            img = cv2.resize(img, (max_w_yolo, int(h0 * scale)), interpolation=cv2.INTER_AREA)
-
-        # YOLO nhận diện khung thẻ (imgsz=640 nhẹ RAM hơn 960)
-        results = get_yolo_model()(img, conf=0.30, imgsz=640, verbose=False)
+        # YOLO nhận diện khung thẻ
+        results = get_yolo_model()(img, conf=0.30, imgsz=960, verbose=False)
         boxes = results[0].boxes
 
         if boxes is None or len(boxes) == 0:
@@ -467,10 +356,10 @@ def nhan_dien_cccd():
                 "message": "Không nhận diện được CCCD. Vui lòng chụp lại ảnh rõ nét"
             }), 400
 
-        x1_min = float("inf")
-        y1_min = float("inf")
-        x2_max = float("-inf")
-        y2_max = float("-inf")
+        x1_min = float('inf')
+        y1_min = float('inf')
+        x2_max = float('-inf')
+        y2_max = float('-inf')
 
         for box in boxes:
             coords = box.xyxy[0].cpu().numpy()
@@ -481,39 +370,39 @@ def nhan_dien_cccd():
             y2_max = max(y2_max, y2)
 
         height, width = img.shape[:2]
-        padding = 30
+        padding = 50
 
         x1 = max(0, x1_min - padding)
         y1 = max(0, y1_min - padding)
         x2 = min(width, x2_max + padding)
         y2 = min(height, y2_max + padding)
 
-        anh_cccd = img[y1:y2, x1:x2].copy()
-        del img, results, boxes
+        anh_cccd = img[y1:y2, x1:x2]
 
         if anh_cccd.size == 0:
             return jsonify({"success": False, "message": "Không thể cắt vùng CCCD!"}), 400
 
-        # Tự động xoay thẳng ảnh nếu bị nghiêng nhẹ
         anh_cccd = can_chinh_anh_nghieng(anh_cccd)
 
-        # Đưa chiều rộng vùng CCCD về mức vừa đủ (~900px) thay vì nhân đôi vô điều kiện
-        cw, ch = anh_cccd.shape[1], anh_cccd.shape[0]
-        target_w = 900
-        if cw > 0 and cw != target_w:
-            ratio = target_w / float(cw)
-            interp = cv2.INTER_AREA if cw > target_w else cv2.INTER_CUBIC
-            anh_cccd = cv2.resize(anh_cccd, (target_w, max(1, int(ch * ratio))), interpolation=interp)
-
+        # Phóng to ảnh để EasyOCR đọc nét hơn
+        anh_cccd = cv2.resize(anh_cccd, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        
         # Đọc chi tiết từng từ bằng EasyOCR
         ocr_results = get_ocr_reader().readtext(anh_cccd, detail=1, paragraph=False)
-        del anh_cccd
-
+        # Gom nhóm từ thành các dòng văn bản kèm tọa độ
         formatted_lines = gom_nhom_dong_ocr(ocr_results, y_tolerance=12)
-        del ocr_results
 
+        print("\nKẾT QUẢ GOM NHÓM DÒNG OCR")
+        for i, item in enumerate(formatted_lines):
+            print(f"[{i}] (y={item['y']:.1f}) {item['text']}")
+        print("=========================\n")
+
+        # Phân tích và bóc tách thông tin
         data = phan_tich_cccd_lines(formatted_lines)
-        del formatted_lines
+
+        print(" DỮ LIỆU TRẢ VỀ FRONTEND ")
+        for key, value in data.items():
+            print(f"{key}: {value}")
 
         return jsonify({
             "success": True,
@@ -528,18 +417,6 @@ def nhan_dien_cccd():
             "error": str(e)
         }), 500
 
-    finally:
-        for var_name in ("img", "anh_cccd", "results", "ocr_results"):
-            if locals().get(var_name) is not None:
-                try:
-                    del locals()[var_name]
-                except Exception:
-                    pass
-        gc.collect()
 
-# if __name__ == "__main__":
-#     app.run(host="0.0.0.0", port=5000, debug=True)
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(host="0.0.0.0", port=5000, debug=True)

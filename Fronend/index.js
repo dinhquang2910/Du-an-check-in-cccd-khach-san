@@ -102,9 +102,8 @@ form.addEventListener("click", async function (kiemtra) {
     alert("Vui lòng nhập mã đặt phòng");
     return;
   }
-  //gửi đến backend
   try {
-    const guidi = await fetch("/api/maphong", {
+    const guidi = await fetch("http://localhost:3000/api/maphong", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -129,9 +128,9 @@ form.addEventListener("click", async function (kiemtra) {
       if (ketquanhanve.guests && ketquanhanve.guests.length > 0) {
         danhSachKhachLuuTru = ketquanhanve.guests.map((khachCu, index) => ({
           id: idKhachTiepTheo++,
-          file: null, // Khách có thể chọn chụp lại hoặc giữ nguyên
-          imageURL: "", // Có thể để trống hoặc hiển thị thông báo "Đã có dữ liệu cũ"
-          daNhanDien: true, // Đánh dấu là đã nhận diện để không bắt buộc phải quét lại nếu không muốn
+          file: null,
+          imageURL: "",
+          daNhanDien: true,
           thongTin: {
             fullName: khachCu.fullName || "",
             idNumber: khachCu.idNumber || "",
@@ -144,7 +143,7 @@ form.addEventListener("click", async function (kiemtra) {
         }));
         veDanhSachKhach();
       } else {
-        danhSachKhachLuuTru = []; // Nếu chưa có thì để trống để sang bước 2 tự thêm mới
+        danhSachKhachLuuTru = [];
       }
       document
         .getElementById("khungThongTinDatPhong")
@@ -161,7 +160,7 @@ form.addEventListener("click", async function (kiemtra) {
   }
 });
 
-// CHUYỂN SANG BƯỚC 2
+// BƯỚC 2
 
 nutSangBuoc2.addEventListener("click", () => {
   if (!daXacNhanMaDatPhong) {
@@ -177,8 +176,6 @@ nutSangBuoc2.addEventListener("click", () => {
     veDanhSachKhach();
   }
 });
-
-// HÀM THÊM KHÁCH MỚI
 
 function themKhachMoi() {
   const khach = {
@@ -339,7 +336,6 @@ danhSachKhach.addEventListener("click", async (event) => {
   const khungCam = theKhachDiv.querySelector(`#khungCamera-${khach.id}`);
   const videoElement = khungCam?.querySelector("video");
 
-  // 👉 THÊM NHÁNH MỞ CAMERA
   if (hanhDong === "mo-camera") {
     try {
       if (activeStream) {
@@ -362,7 +358,6 @@ danhSachKhach.addEventListener("click", async (event) => {
     }
   }
 
-  // 👉 THÊM NHÁNH TẮT CAMERA
   if (hanhDong === "tat-camera") {
     if (activeStream) {
       activeStream.getTracks().forEach((track) => track.stop());
@@ -371,7 +366,7 @@ danhSachKhach.addEventListener("click", async (event) => {
     khungCam.classList.add("hidden");
   }
 
-  //  THÊM CHỤP ẢNH
+  // nút chụp ảnh
   if (hanhDong === "chup-anh") {
     const canvas = document.createElement("canvas");
     canvas.width = videoElement.videoWidth || 1280;
@@ -406,7 +401,6 @@ danhSachKhach.addEventListener("click", async (event) => {
     );
   }
 
-  // Nhánh xóa khách cũ của bạn (nhớ bổ sung tắt stream nếu đang mở)
   if (hanhDong === "xoa") {
     if (activeStream) {
       activeStream.getTracks().forEach((track) => track.stop());
@@ -423,7 +417,7 @@ danhSachKhach.addEventListener("click", async (event) => {
   }
 });
 
-// XỬ LÝ SỰ KIỆN TẢI ẢNH VÀ XÓA
+// tải và xóa ảnh
 
 danhSachKhach.addEventListener("change", (event) => {
   const oNhap = event.target;
@@ -485,7 +479,7 @@ nutThemKhach.addEventListener("click", () => {
   themKhachMoi();
 });
 
-// NHẬN DIỆN AI THẬT QUA PYTHON BACKEND (YOLO11)
+// nhận diện bằng AI
 
 nutNhanDienToanBo.addEventListener("click", async (event) => {
   event.preventDefault();
@@ -504,27 +498,11 @@ nutNhanDienToanBo.addEventListener("click", async (event) => {
   thongBaoLoiKhach.classList.add("hidden");
 
   try {
-    // Đếm số khách nhận diện thất bại
     let soKhachThatBai = 0;
 
-    // Duyệt qua từng khách có file ảnh
-    // for (let khach of chuaXacMinh) {
-    //   const formData = new FormData();
-    //   formData.append("file", khach.file);
-
-    //   // Gửi ảnh lên Python Flask
-    //   const response = await fetch("/api/nhan-dien-cccd", {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-
-    //   const result = await response.json().catch(() => null);
-    // Duyệt qua từng khách có file ảnh
     for (let khach of chuaXacMinh) {
       const formData = new FormData();
       formData.append("file", khach.file);
-
-      // Gửi ảnh lên Python Flask (timeout 120s để chờ service Free thức dậy & load model)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
@@ -541,12 +519,12 @@ nutNhanDienToanBo.addEventListener("click", async (event) => {
 
       const result = await response.json().catch(() => null);
 
-      console.log("========== KẾT QUẢ FLASK ==========");
+      console.log("KẾT QUẢ FLASK");
       console.log("Khách:", khach.id);
       console.log("HTTP Status:", response.status);
       console.log("Response:", result);
 
-      // Kiểm tra phản hồi Flask
+      // Kiểm tra phản hồi
       if (!response.ok || !result || !result.success || !result.data) {
         soKhachThatBai++;
 
@@ -589,14 +567,12 @@ nutNhanDienToanBo.addEventListener("click", async (event) => {
         continue;
       }
 
-      // Lưu thông tin nhận diện vào khách
+      // Lưu thông tin
       khach.thongTin = thongTinMoi;
       khach.daNhanDien = true;
 
       console.log(`Khách ${khach.id} đã nhận diện thành công!`, khach.thongTin);
     }
-
-    // Thông báo kết quả sau khi xử lý toàn bộ khách
     if (soKhachThatBai === 0) {
       alert("Đã xử lý nhận diện thành công tất cả khách!");
     } else {
@@ -618,7 +594,7 @@ nutNhanDienToanBo.addEventListener("click", async (event) => {
   return false;
 });
 
-// BƯỚC 3: XEM LẠI VÀ CHỈNH SỬA THÔNG TIN
+//3: XEM LẠI VÀ CHỈNH SỬA THÔNG TIN
 
 function lamSachHTML(giaTri) {
   return String(giaTri ?? "").replace(/[&<>"']/g, (kyTu) => {
@@ -795,8 +771,6 @@ nutSangBuoc3.addEventListener("click", () => {
   hienThiBuoc(3);
 });
 
-// NÚT QUAY LẠI CÁC BƯỚC
-
 document.getElementById("nutQuayLaiBuoc1").addEventListener("click", () => {
   hienThiBuoc(1);
 });
@@ -805,7 +779,7 @@ document.getElementById("nutQuayLaiBuoc2").addEventListener("click", () => {
   hienThiBuoc(2);
 });
 
-// BƯỚC 3: GỬI HOÀN TẤT THÔNG TIN
+// BƯỚC 3: gửi thông tin
 
 document
   .getElementById("formKhachHang")
@@ -855,7 +829,7 @@ document
       guests: danhSachKhachLuuTru.map((khach) => ({ ...khach.thongTin })),
     };
     try {
-      const response = await fetch("/api/xacnhangui", {
+      const response = await fetch("http://localhost:3000/api/xacnhangui", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -895,7 +869,5 @@ document
     }
   });
 console.log("INDEX.JS ĐƯỢC KHỞI TẠO");
-
-// KHỞI TẠO ỨNG DỤNG
 
 hienThiBuoc(1);

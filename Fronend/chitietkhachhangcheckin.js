@@ -10,7 +10,7 @@ async function loadkhach() {
   }
   try {
     const guidi = await fetch(
-      `/api/chitietkhach?maphong=${encodeURIComponent(maphong)}`,
+      `http://localhost:3000/api/chitietkhach?maphong=${encodeURIComponent(maphong)}`,
     );
     if (!guidi.ok) {
       throw new Error("không thể lấy danh sách khách hàng");
@@ -24,15 +24,10 @@ async function loadkhach() {
 }
 function dinhDangNgayGio(giaTri) {
   if (!giaTri) return "chưa có";
-
   const str = String(giaTri).trim();
-
-  // 1. Đã là định dạng "HH:mm DD/MM/YYYY" thì trả về luôn
   if (/^\d{2}:\d{2}\s+\d{2}\/\d{2}\/\d{4}$/.test(str)) {
     return str;
   }
-
-  // 2. Chuỗi "YYYY-MM-DD HH:mm:ss" hoặc "YYYY-MM-DDTHH:mm:ss" KHÔNG có Z / +-HH:mm
   const matchLocal = str.match(
     /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::\d{2})?$/,
   );
@@ -40,13 +35,10 @@ function dinhDangNgayGio(giaTri) {
     const [, nam, thang, ngay, gio, phut] = matchLocal;
     return `${gio}:${phut} ${ngay}/${thang}/${nam}`;
   }
-
-  // 3. Đối tượng Date hoặc chuỗi ISO có múi giờ (Z / +07:00...) -> quy về giờ Việt Nam
   const date = new Date(giaTri);
   if (Number.isNaN(date.getTime())) {
     return str;
   }
-
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Ho_Chi_Minh",
     hour: "2-digit",
@@ -56,33 +48,24 @@ function dinhDangNgayGio(giaTri) {
     year: "numeric",
     hour12: false,
   }).formatToParts(date);
-
   const getPart = (type) => parts.find((p) => p.type === type)?.value || "";
   return `${getPart("hour")}:${getPart("minute")} ${getPart("day")}/${getPart("month")}/${getPart("year")}`;
 }
 function dinhDangNgaySinh(gt) {
   if (!gt) return "chưa có";
-
   const str = String(gt).trim();
-
-  // 1. Đã là "DD/MM/YYYY" thì trả về luôn
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
     return str;
   }
-
-  // 2. Chuỗi "YYYY-MM-DD" (kể cả khi kèm theo " HH:mm:ss" hoặc "THH:mm:ss")
   const matchDate = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (matchDate) {
     const [, nam, thang, ngay] = matchDate;
     return `${ngay}/${thang}/${nam}`;
   }
-
-  // 3. Đối tượng Date hoặc chuỗi ngày hợp lệ khác
   const date = new Date(gt);
   if (Number.isNaN(date.getTime())) {
     return str;
   }
-
   const pad = (n) => String(n).padStart(2, "0");
   const ngay = pad(date.getUTCDate());
   const thang = pad(date.getUTCMonth() + 1);
@@ -141,17 +124,20 @@ function hienthikhach(khachhang) {
       }
       trangthai.disabled = true;
       try {
-        const guixacnhancheckin = await fetch("/api/xacnhancheckin", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const guixacnhancheckin = await fetch(
+          "http://localhost:3000/api/xacnhancheckin",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              maphong: maphong,
+              makh: khachhang2.makh,
+            }),
           },
-          credentials: "include",
-          body: JSON.stringify({
-            maphong: maphong,
-            makh: khachhang2.makh,
-          }),
-        });
+        );
         if (!guixacnhancheckin.ok) {
           throw new Error("Xác nhận thông tin khách hàng thất bại");
         }

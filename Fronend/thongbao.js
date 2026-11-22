@@ -1,4 +1,4 @@
-const socket = io("");
+const socket = io("http://localhost:3000");
 const trangThaiKetNoi = document.getElementById("trangThaiKetNoi");
 const danhSachThongBao = document.getElementById("danhSachThongBao");
 const nutXoaThongBao = document.getElementById("nutXoaThongBao");
@@ -115,7 +115,7 @@ function themCardThongBao(payload, isTop = true) {
 
 async function taiThongBaoTuDB() {
   try {
-    const res = await fetch("/api/thongbao-checkin");
+    const res = await fetch("http://localhost:3000/api/thongbao-checkin");
     const kq = await res.json();
 
     if (

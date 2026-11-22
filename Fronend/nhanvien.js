@@ -4,7 +4,7 @@ let tatcacacphong = [];
 
 async function loadroom() {
   try {
-    const chuyendi = await fetch("/api/hienthiphong");
+    const chuyendi = await fetch("http://localhost:3000/api/hienthiphong");
     if (!chuyendi.ok) {
       throw new Error("không thể lấy danh sách phòng");
     }
@@ -21,13 +21,9 @@ function dinhDangNgayGio(giaTri) {
 
   if (typeof giaTri === "string") {
     const str = giaTri.trim();
-
-    // Đã là dạng "DD/MM/YYYY HH:mm" thì trả về luôn
     if (/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/.test(str)) {
       return str.slice(0, 16);
     }
-
-    // Nếu là chuỗi "YYYY-MM-DD HH:mm:ss" hoặc "YYYY-MM-DDTHH:mm:ss" KHÔNG có Z / +-HH:mm ở cuối
     const matchLocal = str.match(
       /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::\d{2})?$/,
     );
@@ -41,8 +37,6 @@ function dinhDangNgayGio(giaTri) {
   if (Number.isNaN(date.getTime())) {
     return String(giaTri);
   }
-
-  // Quy đổi về múi giờ Việt Nam (+07:00)
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Ho_Chi_Minh",
     day: "2-digit",
